@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Room request | Launchpad</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink:#282420; --accent:#ff7a3d; --ok:#1a7f4b; --err:#b42318; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:16px/1.5 Montserrat, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:var(--ink); background:#fff; }
+    .top { background:var(--ink); color:#fff; padding:18px 16px 24px; }
+    .in { max-width:560px; margin:0 auto; }
+    .logo { width:170px; height:auto; display:block; margin-bottom:18px; }
+    .top h1 { font-size:26px; line-height:1.15; font-weight:700; margin:0; }
+    .wrap { max-width:560px; margin:0 auto; padding:24px 16px 40px; }
+    .card { border-radius:8px; padding:18px 16px; font-size:16px; }
+    .card.work { background:#f7f5f3; }
+    .card.ok { background:#ecfdf3; color:var(--ok); }
+    .card.no { background:#fff4ee; color:#8a3b12; }
+    .card.err { background:#fef3f2; color:var(--err); }
+    .card h2 { margin:0 0 6px; font-size:20px; }
+    .card p { margin:4px 0; }
+    a.btn { display:inline-block; margin-top:20px; padding:12px 18px; border-radius:6px; background:var(--accent); color:var(--ink); font-weight:700; text-decoration:none; }
+  </style>
+</head>
+<body>
+<div class="top">
+  <div class="in">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="90 358 4807 1342" class="logo" role="img" aria-label="Launchpad"> <defs> <style> .st0 { fill: none; } .st1 { fill: #ff7a3d; fill-rule: evenodd; } .st2 { fill: #fff; } .st3 { clip-path: url(#clippath); } </style> <clipPath id="clippath"> <rect class="st0" x="96.1" y="363.1" width="1902.5" height="1331.7"/> </clipPath> </defs> <g class="st3"> <path class="st1" d="M650.3,761.4l-43.7,43.7,25,25,25,25-50.4,50.4,50.4,50.4-50.4,50.4-50.4-50.4,50.4-50.4-50.4-50.4-91.4,91.4,50.4,50.4-49.6,50.4,100.4,100.4-100.8,100.8-50.4-50.4-48.8,48.8,95.3,96.5-50.4,50.4,100.8,100.8-50.4,50.4,50.4,50.4,50.4-50.4,50.4,50.4,50.4-50.4-50.4-50.4,50.4-50.4-50.4-50.4,50.4-50.4-50.4-50.4,50.4-50.4,50.4,50.4-50.4,50.4,50.4,50.4-50.4,50.4,50.4,50.4,151.1-151.1-50.4-50.4,50.4-50.4,50.4,50.4,51.5-51.6,82.4-82.4,43.7,43.7,38.7,38.7,51.5,51.6,50.4-50.4,50.4,50.4-50.4,50.4,151.1,151.1,50.4-50.4,50.4,50.4-50.4,50.4,50.4,50.4,50.4-50.4,50.4,50.4,50.4-50.4-50.4-50.4,100.8-100.8,50.4,50.4,50.4-50.4-50.4-50.4-50.4,50.4-51.2-50.4,95.3-96.5-48.8-48.8-50.4,50.4-100.8-100.8,100.4-100.4-50.4-50.4,50.4-50.4-91.4-91.4-50.4,50.4,50.4,50.4-50.4,50.4-50.4-50.4,50.4-50.4-50.4-50.4,25-25,25-25-43.7-43.7-396.8-397.6-397.6,397.6ZM1282.1,1091.4l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM712.7,1091.8l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM1429.4,1147.6l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM565.5,1147.6l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM1181.8,1192.2l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM813.1,1192.2l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM1332.5,1242.5l50.4,50.4-50.4,50.4-50.4-50.4,50.4-50.4ZM762.7,1242.5l50.4,50.4-50.4,50.4-50.4-50.4,50.4-50.4ZM1433.3,1242.5l50.4,50.4-50.4,50.4,50.4,50.4-50.4,50.4-50.4-50.4,50.4-50.4-50.4-50.4,50.4-50.4ZM1534,1242.5l100.8,100.8-50.4,50.4-100.8-100.8,50.4-50.4ZM561.6,1242.5l50.4,50.4-100.8,100.8-50.4-50.4,100.8-100.8ZM1483.6,1494l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM511.2,1494l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM1630.5,1047.3l50.4-50.4,50.4,50.4-50.4,50.4,50.4,50.4-50.4,50.4-50-50.4,50.4-50.4-50.8-50.4ZM364.4,1047.3l50.4-50.4,50.4,50.4-50.4,50.4,50.4,50.4-50.4,50.4-50.4-50.4,50.4-50.4-50.4-50.4ZM1731.2,1148l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM263.6,1148l50.4,50.4,50.4-50.4-50.4-50.4-50.4,50.4ZM1819.9,1280.8l36.3,36.3,36.3-36.3-36.3-36.3-36.3,36.3ZM203.1,1280.8l36.3,36.3,36.3-36.3-36.3-36.3-36.3,36.3ZM310.1,1393.7l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM1953.1,1371.4l23,23.4,23-23-23.4-23.4-22.7,23ZM96.1,1371.8l23,23,23-23.4-22.7-23-23.4,23.4ZM1837.1,1379.2l23,23.4,23-23-23.4-23-22.7,22.7ZM212.1,1379.2l23,23,23-23.4-23-23-23,23.4ZM1782.8,1496l36.3-36.3,36.3,36.3-36.3,36.3-36.3-36.3ZM240.2,1496l36.3,36.3,36.3-36.3-36.3-36.3-36.3,36.3ZM1941,1512.8l23.4,23,23-23-23-23-23.4,23ZM108.2,1512.8l23,23,23.4-23-23.4-23.4-23,23.4ZM1634.8,1544.4l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM360.1,1544.8l50.4-50.4,50.4,50.4-50.4,50.4-50.4-50.4ZM1835.9,1604.2l23,23,23-23-23-23-23,23ZM213.3,1604.2l23,23,23-23-23-23-23,23ZM1702.3,1657.7l36.3,36.3,36.3-36.3-36.3-36.3-36.3,36.3ZM321,1657.7l36.3,36.3,36.3-36.3-36.3-36.3-36.3,36.3Z"/> </g> <path class="st2" d="M2337,1225.7h109.5v54.9h-175.1v-258h65.6v203.1Z"/> <path class="st2" d="M2678.3,1233.1h-112.8l-18.8,47.5h-67.4l111.3-258h67.5l108.7,258h-70l-18.4-47.5ZM2659.2,1183.3l-36.9-95.5-37.6,95.5h74.5Z"/> <path class="st2" d="M3052,1022.6v149.6c0,34.2-10.6,61.2-31.7,81.3-21.1,20-49.8,30-85.9,30s-65.3-10-86.8-30c-21.5-20-32.3-47.1-32.3-81.3v-149.6h65.6v149.6c0,17.2,5,30.9,14.9,41.1,10,10.2,22.9,15.3,38.9,15.3s28.3-5,37.8-15.1c9.5-10.1,14.2-23.8,14.2-41.3v-149.6h65.3Z"/> <path class="st2" d="M3366.4,1280.6h-57.9l-118.7-158.9v158.9h-61.6v-258h57.9l119,159.2v-159.2h61.2v258Z"/> <path class="st2" d="M3568,1020.4c19.2,0,38,3.9,56.6,11.8,18.6,7.9,34.3,18.4,47.4,31.7l-38,45c-8.4-10.3-18.4-18.5-30-24.5-11.7-6-23.3-9-34.8-9-20.4,0-37.5,7.2-51.2,21.6-13.8,14.4-20.6,32.1-20.6,53.3s6.9,39.7,20.6,54.2c13.8,14.5,30.8,21.8,51.2,21.8s22-2.7,33.7-8.1c11.7-5.4,22.1-12.8,31.2-22.1l38.3,40.5c-14,14.3-30.5,25.7-49.6,34.3-19,8.6-38,12.9-56.9,12.9-38.8,0-71.1-12.7-96.9-38-25.8-25.3-38.7-56.9-38.7-94.7s13.1-68.1,39.4-93.1c26.3-24.9,59.1-37.4,98.4-37.4Z"/> <path class="st2" d="M3969.4,1280.6h-65.6v-100.3h-106.9v100.3h-65.6v-258h65.6v106.1h106.9v-106.1h65.6v258Z"/> <path class="st2" d="M4050.1,1022.6h112.4c32.9,0,58.5,7.8,76.7,23.4,18.2,15.6,27.3,37.8,27.3,66.5s-9.1,53.7-27.3,70.4c-18.2,16.7-43.7,25.1-76.7,25.1h-46.8v72.6h-65.6v-258ZM4115.7,1074.2v82.2h43.5c14.5,0,25.7-3.6,33.5-10.7,7.9-7.1,11.8-17.4,11.8-31s-3.9-23.3-11.8-30.2c-7.9-6.9-19-10.3-33.5-10.3h-43.5Z"/> <path class="st2" d="M4501.2,1233.1h-112.8l-18.8,47.5h-67.4l111.3-258h67.5l108.7,258h-70l-18.4-47.5ZM4482.1,1183.3l-36.9-95.5-37.6,95.5h74.5Z"/> <path class="st2" d="M4642.7,1022.6h110.9c40.5,0,73.5,11.9,99,35.8,25.4,23.8,38.1,54.9,38.1,93.3s-12.9,69.1-38.7,93.1c-25.8,24-59.4,35.9-101,35.9h-108.4v-258ZM4708.4,1075v153.3h46.8c20.2,0,36.7-7.1,49.6-21.2,12.9-14.1,19.4-32.5,19.4-55.1s-6.8-41.1-20.3-55.5c-13.5-14.4-30.7-21.6-51.6-21.6h-43.9Z"/> </svg>
+    <h1>Room request</h1>
+  </div>
+</div>
+<div class="wrap">
+  <div id="out" class="card work">Working on it…</div>
+  <a class="btn" href="./">Back to room booking</a>
+</div>
+<script>
+  var API = "https://script.google.com/macros/s/AKfycbz7SeqVjY4N9eyI0fkL5LksnRK0UYqvADAetE1WDPtNTMjh2eNpZi-xgLPvczO7mgCp/exec";
+  var p = new URLSearchParams(location.search);
+  var action = p.get('a');
+  var out = document.getElementById('out');
+
+  function show(kind, title, lines) {
+    out.className = 'card ' + kind;
+    out.innerHTML = '';
+    var h = document.createElement('h2'); h.textContent = title; out.appendChild(h);
+    lines.forEach(function (t) { var q = document.createElement('p'); q.textContent = t; out.appendChild(q); });
+  }
+
+  if ((action !== 'approve' && action !== 'decline') || !p.get('room') || !p.get('id') || !p.get('t')) {
+    show('err', 'Invalid link', ['This approval link is incomplete. Please use the button in the Slack message.']);
+  } else {
+    fetch(API + '?' + new URLSearchParams({ action: action, room: p.get('room'), id: p.get('id'), t: p.get('t') }).toString())
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.error) { show('err', 'Could not complete this', [d.error]); return; }
+        if (d.status === 'approved') {
+          show('ok', 'Approved ✅', [d.room + ' — ' + d.when, 'Booked for ' + d.name + '. They’ve been emailed a confirmation and a calendar invitation.']);
+        } else {
+          show('no', 'Declined', [d.room + ' — ' + d.when, d.name + ' has been emailed, and the time is open again.']);
+        }
+      })
+      .catch(function (e) { show('err', 'Could not reach the booking system', ['Please try again in a moment. (' + e.message + ')']); });
+  }
+</script>
+</body>
+</html>
