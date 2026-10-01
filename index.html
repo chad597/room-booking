@@ -16,15 +16,15 @@
     .top h1 { font-size:26px; line-height:1.15; font-weight:700; margin:0 0 6px; }
     .top .sub { margin:0; font-size:14px; color:#d9d2cb; }
     .wrap { max-width:560px; margin:0 auto; padding:8px 16px 32px; }
-    label { display:block; font-weight:600; font-size:14px; margin:18px 0 6px; }
+    label, .lbl { display:block; font-weight:600; font-size:14px; margin:18px 0 6px; }
     select, input[type=date], input[type=text], input[type=email] { width:100%; padding:11px 12px; font:inherit; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); }
     select:focus, input:focus { outline:2px solid var(--accent); outline-offset:1px; }
+    .seg { display:flex; gap:8px; }
+    .seg button, .slot { padding:11px 8px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); font:600 14px Montserrat, sans-serif; cursor:pointer; }
+    .seg button { flex:1; }
+    .seg button:hover, .slot:hover { border-color:var(--accent); background:#fff4ee; }
+    .seg button.sel, .slot.sel { background:var(--accent); border-color:var(--accent); color:var(--ink); }
     .slots { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; margin-top:6px; }
-    .slot { padding:11px 8px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); font:600 14px Montserrat, sans-serif; cursor:pointer; }
-    .slot:hover:not(:disabled) { border-color:var(--accent); background:#fff4ee; }
-    .slot.sel { background:var(--accent); border-color:var(--accent); color:var(--ink); }
-    .slot:disabled { background:var(--cream); color:#8a8178; cursor:not-allowed; font-weight:400; }
-    .slot .who { display:inline-block; margin-top:2px; font-size:12px; font-weight:600; color:#6b645d; }
     button.primary { margin-top:20px; width:100%; padding:13px; font:700 16px Montserrat, sans-serif; border:0; border-radius:6px; background:var(--accent); color:var(--ink); cursor:pointer; }
     button.primary:hover:not(:disabled) { filter:brightness(.95); }
     button.primary:disabled { opacity:.5; cursor:not-allowed; }
@@ -44,7 +44,7 @@
     .grid th { font-size:12px; text-align:center; font-weight:700; padding:4px 2px; line-height:1.2; }
     .grid th.t, .grid td.t { width:46px; }
     .grid td.t { font-size:11px; color:var(--muted); text-align:right; padding-right:4px; white-space:nowrap; }
-    .grid td.c { height:36px; border-radius:5px; font-size:11px; text-align:center; padding:2px; line-height:1.15; overflow:hidden; word-break:break-word; }
+    .grid td.c { height:28px; border-radius:5px; font-size:11px; text-align:center; padding:1px 2px; line-height:1.15; overflow:hidden; word-break:break-word; }
     .grid td.open { background:#fff4ee; border:1px solid #ffd2bb; cursor:pointer; color:var(--ink); font-weight:600; }
     .grid td.open:hover, .grid td.open:focus { background:var(--accent); outline:none; }
     .grid td.booked { background:var(--cream); color:#6b645d; font-weight:600; }
@@ -68,7 +68,10 @@
     <label for="date">Date</label>
     <input type="date" id="date">
 
-    <label>Available times (60 minutes)</label>
+    <div class="lbl">How long?</div>
+    <div class="seg" id="dur"></div>
+
+    <div class="lbl">Start time</div>
     <div class="slots" id="slots"></div>
     <div class="hint" id="slotHint">Choose a room and date.</div>
 
@@ -98,7 +101,7 @@
 <script>
   // The booking logic and calendars live in a Google Apps Script web app; this page only talks to it.
   var API = "https://script.google.com/macros/s/AKfycbz7SeqVjY4N9eyI0fkL5LksnRK0UYqvADAetE1WDPtNTMjh2eNpZi-xgLPvczO7mgCp/exec";
-  var state = { start: null, cfg: null, pending: false, want: null };
+  var state = { start: null, cfg: null, pending: false, want: null, dur: 60, day: null };
   var grid = { date: null };
   var $ = function (id) { return document.getElementById(id); };
 
@@ -124,6 +127,17 @@
     }).then(parse);
   }
 
+  // One request returns all three rooms for a day; the start-time list and the grid share it.
+  var dayCache = {};
+  function getDay(date) {
+    var c = dayCache[date];
+    if (c && Date.now() - c.t < 45000) return c.p;
+    var p = apiGet({ action: 'day', date: date });
+    dayCache[date] = { t: Date.now(), p: p };
+    p.catch(function () { delete dayCache[date]; });
+    return p;
+  }
+
   function addDays(str, n) {
     var d = new Date(str + 'T12:00:00Z');
     d.setUTCDate(d.getUTCDate() + n);
@@ -131,6 +145,106 @@
   }
   function prettyDate(str) {
     return new Date(str + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  }
+  function durLabel(m) { return m === 30 ? '30 min' : m === 60 ? '1 hour' : m === 120 ? '2 hours' : (m / 60) + ' hours'; }
+  function startText(label) { return label.split(' – ')[0]; }
+  function endText(label) { return label.split(' – ')[1]; }
+
+  // Start times where the whole block (dur minutes) is free, in consecutive 30-minute slots.
+  function startsFor(slots, dur) {
+    var step = state.cfg.stepMinutes, n = dur / step, out = [];
+    for (var i = 0; i + n <= slots.length; i++) {
+      var ok = true;
+      for (var j = 0; j < n; j++) {
+        var s = slots[i + j];
+        if (!s.available || new Date(s.start).getTime() !== new Date(slots[i].start).getTime() + j * step * 60000) { ok = false; break; }
+      }
+      if (ok) out.push({ start: slots[i].start, label: startText(slots[i].label) + ' – ' + endText(slots[i + n - 1].label), needsApproval: slots[i].needsApproval });
+    }
+    return out;
+  }
+
+  function renderDur() {
+    var box = $('dur'); box.innerHTML = '';
+    state.cfg.durations.forEach(function (m) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = durLabel(m);
+      if (m === state.dur) b.classList.add('sel');
+      b.onclick = function () {
+        state.dur = m; state.start = null; $('details').hidden = true; showMsg('');
+        renderDur(); renderStarts();
+      };
+      box.appendChild(b);
+    });
+  }
+
+  function init(cfg) {
+    state.cfg = cfg;
+    $('hours').textContent = 'Open ' + cfg.hoursLabel + '. Questions? Contact ' + cfg.contact + '.';
+    var sel = $('room');
+    cfg.rooms.forEach(function (r) {
+      var o = document.createElement('option');
+      o.value = r.key; o.textContent = r.name; sel.appendChild(o);
+    });
+    var pre = new URLSearchParams(location.search).get('room');
+    if (pre && cfg.rooms.some(function (r) { return r.key === pre; })) sel.value = pre;
+    if (cfg.durations.indexOf(state.dur) === -1) state.dur = cfg.durations[0];
+    $('date').min = cfg.minDate; $('date').max = cfg.maxDate; $('date').value = cfg.minDate;
+    sel.onchange = loadSlots; $('date').onchange = loadSlots;
+    $('book').onclick = book;
+    grid.date = cfg.minDate;
+    $('prev').onclick = function () { grid.date = addDays(grid.date, -1); loadGrid(); };
+    $('next').onclick = function () { grid.date = addDays(grid.date, 1); loadGrid(); };
+    renderDur();
+    loadSlots();
+    loadGrid();
+  }
+
+  function loadSlots() {
+    state.start = null; $('details').hidden = true; showMsg('');
+    var date = $('date').value;
+    if (!date) return;
+    $('slots').innerHTML = ''; $('slotHint').textContent = 'Loading times…';
+    var room = $('room').value;
+    getDay(date)
+      .then(function (day) {
+        if ($('date').value !== date || $('room').value !== room) return;
+        state.day = day[room] || [];
+        if (state.want) {
+          // Coming from the grid: keep the chosen length if it fits, otherwise the longest that does.
+          var want = state.want, best = null;
+          state.cfg.durations.forEach(function (m) {
+            if (m <= state.dur && startsFor(state.day, m).some(function (o) { return o.start === want; })) best = m;
+          });
+          if (best) { state.dur = best; renderDur(); }
+        }
+        renderStarts();
+      })
+      .catch(function (e) { state.want = null; $('slotHint').textContent = ''; showMsg(e.message, 'err'); });
+  }
+
+  function renderStarts() {
+    var box = $('slots'); box.innerHTML = '';
+    var slots = state.day || [];
+    if (!slots.length) { state.want = null; $('slotHint').textContent = 'No bookable times on this date (weekdays only).'; return; }
+    var opts = startsFor(slots, state.dur), toSelect = null;
+    opts.forEach(function (o) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'slot'; b.textContent = o.label + (o.needsApproval ? ' *' : '');
+      b.onclick = function () {
+        state.start = o.start; state.pending = o.needsApproval;
+        $('book').textContent = o.needsApproval ? 'Request this room' : 'Book this room';
+        Array.prototype.forEach.call(box.children, function (c) { c.classList.remove('sel'); });
+        b.classList.add('sel'); $('details').hidden = false; showMsg('');
+      };
+      box.appendChild(b);
+      if (state.want === o.start) toSelect = b;
+    });
+    state.want = null;
+    if (toSelect) { toSelect.click(); $('details').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    $('slotHint').textContent = opts.length
+      ? 'Tap a start time. * Starts after 5:00pm and needs building approval. Booked times are in the grid below.'
+      : 'No ' + durLabel(state.dur) + ' openings on this date. Try a shorter length or another day.';
   }
 
   function loadGrid() {
@@ -157,17 +271,35 @@
     var starts = Object.keys(rows).sort();
     var box = $('grid'); box.innerHTML = '';
     if (!starts.length) { box.textContent = 'No bookable times on this date (weekdays only, and not in the past).'; return; }
+
+    // Merge consecutive slots of the same booking into one block (rowspan).
+    var span = {}, skip = {};
+    rooms.forEach(function (r, i) {
+      for (var k = 0; k < starts.length; k++) {
+        var s = rows[starts[k]].cells[i];
+        if (!s || s.available || !s.eid || skip[k + ':' + i]) continue;
+        var n = 1;
+        while (k + n < starts.length) {
+          var nx = rows[starts[k + n]].cells[i];
+          if (nx && !nx.available && nx.eid === s.eid) { skip[(k + n) + ':' + i] = true; n++; } else break;
+        }
+        span[k + ':' + i] = n;
+      }
+    });
+
     var table = document.createElement('table');
     var head = table.insertRow();
     head.appendChild(Object.assign(document.createElement('th'), { className: 't' }));
     rooms.forEach(function (r) { var th = document.createElement('th'); th.textContent = r.name; head.appendChild(th); });
-    starts.forEach(function (st) {
+    starts.forEach(function (st, k) {
       var tr = table.insertRow();
-      var t = tr.insertCell(); t.className = 't'; t.textContent = rows[st].label.split(' – ')[0].replace(':00', '');
+      var t = tr.insertCell(); t.className = 't'; t.textContent = startText(rows[st].label).replace(':00', '');
       rooms.forEach(function (r, i) {
+        if (skip[k + ':' + i]) return;
         var td = tr.insertCell(); var s = rows[st].cells[i];
         td.className = 'c';
         if (!s) { td.classList.add('na'); td.textContent = '–'; return; }
+        if (span[k + ':' + i] > 1) td.rowSpan = span[k + ':' + i];
         if (s.available) {
           td.classList.add('open'); td.textContent = s.needsApproval ? 'Open *' : 'Open';
           td.tabIndex = 0; td.setAttribute('role', 'button');
@@ -191,93 +323,19 @@
     loadSlots();
   }
 
-  // One request returns all three rooms for a day; the slot list and the grid share it.
-  var dayCache = {};
-  function getDay(date) {
-    var c = dayCache[date];
-    if (c && Date.now() - c.t < 45000) return c.p;
-    var p = apiGet({ action: 'day', date: date });
-    dayCache[date] = { t: Date.now(), p: p };
-    p.catch(function () { delete dayCache[date]; });
-    return p;
-  }
-
-  function init(cfg) {
-    state.cfg = cfg;
-    $('hours').textContent = 'Open ' + cfg.hoursLabel + '. Questions? Contact ' + cfg.contact + '.';
-    var sel = $('room');
-    cfg.rooms.forEach(function (r) {
-      var o = document.createElement('option');
-      o.value = r.key; o.textContent = r.name; sel.appendChild(o);
-    });
-    var pre = new URLSearchParams(location.search).get('room');
-    if (pre && cfg.rooms.some(function (r) { return r.key === pre; })) sel.value = pre;
-    $('date').min = cfg.minDate; $('date').max = cfg.maxDate; $('date').value = cfg.minDate;
-    sel.onchange = loadSlots; $('date').onchange = loadSlots;
-    $('book').onclick = book;
-    grid.date = cfg.minDate;
-    $('prev').onclick = function () { grid.date = addDays(grid.date, -1); loadGrid(); };
-    $('next').onclick = function () { grid.date = addDays(grid.date, 1); loadGrid(); };
-    loadSlots();
-    loadGrid();
-  }
-
-  function loadSlots() {
-    state.start = null; $('details').hidden = true; showMsg('');
-    var date = $('date').value;
-    if (!date) return;
-    $('slots').innerHTML = ''; $('slotHint').textContent = 'Loading times…';
-    var room = $('room').value;
-    getDay(date)
-      .then(function (day) {
-        if ($('date').value !== date || $('room').value !== room) return;
-        renderSlots(day[room] || []);
-      })
-      .catch(function (e) { $('slotHint').textContent = ''; showMsg(e.message, 'err'); });
-  }
-
-  function renderSlots(slots) {
-    var box = $('slots'); box.innerHTML = '';
-    if (!slots.length) { state.want = null; $('slotHint').textContent = 'No bookable times on this date (weekdays only).'; return; }
-    var any = false, toSelect = null;
-    slots.forEach(function (s) {
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'slot'; b.disabled = !s.available;
-      if (s.available) {
-        b.textContent = s.label + (s.needsApproval ? ' *' : '');
-        any = true;
-      } else {
-        var t = document.createElement('div'); t.textContent = s.label;
-        var w = document.createElement('span'); w.className = 'who'; w.textContent = s.bookedBy || 'Booked';
-        b.appendChild(t); b.appendChild(w);
-      }
-      b.onclick = function () {
-        state.start = s.start; state.pending = s.needsApproval;
-        $('book').textContent = s.needsApproval ? 'Request this room' : 'Book this room';
-        Array.prototype.forEach.call(box.children, function (c) { c.classList.remove('sel'); });
-        b.classList.add('sel'); $('details').hidden = false; showMsg('');
-      };
-      box.appendChild(b);
-      if (state.want === s.start && s.available) toSelect = b;
-    });
-    state.want = null;
-    if (toSelect) { toSelect.click(); $('details').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-    $('slotHint').textContent = any ? 'Tap a time to select it. * Times starting after 5:00pm need building approval.' : 'This room is fully booked on this date.';
-  }
-
   function book() {
     var btn = $('book');
-    if (!state.start) return showMsg('Please pick a time.', 'err');
+    if (!state.start) return showMsg('Please pick a start time.', 'err');
     btn.disabled = true; btn.textContent = state.pending ? 'Requesting…' : 'Booking…'; showMsg('');
     apiBook({
-      action: 'book', room: $('room').value, start: state.start,
+      action: 'book', room: $('room').value, start: state.start, duration: state.dur,
       name: $('name').value, email: $('email').value, website: $('website').value
     }).then(function (r) {
       dayCache = {};
       loadGrid();
       $('form').innerHTML = '<div class="msg ok"></div>';
       $('form').firstChild.textContent = r.pending
-        ? 'Request received for ' + r.room + ' — ' + r.when + '. Bookings after 5:00pm need building approval, so this is NOT confirmed yet. ' + state.cfg.contact + ' will follow up by email.'
+        ? 'Request received for ' + r.room + ' — ' + r.when + '. Bookings that start after 5:00pm need building approval, so this is NOT confirmed yet. ' + state.cfg.contact + ' will follow up by email.'
         : 'You’re booked! ' + r.room + ' — ' + r.when + '. A calendar invitation is on its way to your email. To change or cancel, contact ' + state.cfg.contact + '.';
     }).catch(function (e) {
       btn.disabled = false; btn.textContent = state.pending ? 'Request this room' : 'Book this room';
