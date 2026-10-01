@@ -17,8 +17,8 @@
     .top .sub { margin:0; font-size:14px; color:#d9d2cb; }
     .wrap { max-width:560px; margin:0 auto; padding:8px 16px 32px; }
     label, .lbl { display:block; font-weight:600; font-size:14px; margin:18px 0 6px; }
-    input[type=text], input[type=email] { width:100%; padding:11px 12px; font:inherit; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); }
-    input:focus { outline:2px solid var(--accent); outline-offset:1px; }
+    select, input[type=date], input[type=text], input[type=email] { width:100%; padding:11px 12px; font:inherit; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); }
+    select:focus, input:focus { outline:2px solid var(--accent); outline-offset:1px; }
     .seg { display:flex; gap:8px; }
     .seg button { flex:1; padding:11px 8px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); font:600 14px Montserrat, sans-serif; cursor:pointer; }
     .seg button:hover { border-color:var(--accent); background:#fff4ee; }
@@ -62,6 +62,12 @@
 </div>
 <div class="wrap">
   <div id="okmsg"></div>
+
+  <label for="room">Room</label>
+  <select id="room"></select>
+
+  <label for="date">Date</label>
+  <input type="date" id="date">
 
   <div class="lbl">How long?</div>
   <div class="seg" id="dur"></div>
@@ -194,6 +200,7 @@
   // Tapped an open cell: use the chosen length, or the longest shorter one that fits there.
   function pickSlot(roomKey, startIso) {
     showOk(''); showMsg('');
+    $('room').value = roomKey; state.pre = roomKey;
     var cands = state.cfg.durations.filter(function (m) { return m <= state.dur; }).sort(function (a, b) { return b - a; });
     for (var i = 0; i < cands.length; i++) {
       var f = fit(roomKey, startIso, cands[i]);
@@ -210,6 +217,7 @@
   function loadGrid() {
     var d = grid.date;
     $('gridDate').textContent = prettyDate(d);
+    $('date').value = d;
     $('prev').disabled = d <= state.cfg.minDate;
     $('next').disabled = d >= state.cfg.maxDate;
     $('grid').textContent = 'Loading…';
@@ -313,8 +321,28 @@
   function init(cfg) {
     state.cfg = cfg;
     $('hours').textContent = 'Open ' + cfg.hoursLabel + '. Questions? Contact ' + cfg.contact + '.';
+    var sel = $('room');
+    cfg.rooms.forEach(function (r) {
+      var o = document.createElement('option');
+      o.value = r.key; o.textContent = r.name; sel.appendChild(o);
+    });
     var pre = new URLSearchParams(location.search).get('room');
-    if (pre && cfg.rooms.some(function (r) { return r.key === pre; })) state.pre = pre;
+    if (pre && cfg.rooms.some(function (r) { return r.key === pre; })) sel.value = pre;
+    state.pre = sel.value;
+    $('date').min = cfg.minDate; $('date').max = cfg.maxDate; $('date').value = cfg.minDate;
+    sel.onchange = function () {
+      state.pre = sel.value; showOk(''); showMsg('');
+      if (state.sel) {
+        var f = fit(sel.value, state.sel.start, state.dur);
+        if (f) setSel(sel.value, state.sel.start, f); else clearSel();
+      }
+      repaint();
+    };
+    $('date').onchange = function () {
+      var v = $('date').value;
+      if (!v) return;
+      grid.date = v; clearSel(); showOk(''); showMsg(''); loadGrid();
+    };
     if (cfg.durations.indexOf(state.dur) === -1) state.dur = cfg.durations[0];
     grid.date = cfg.minDate;
     $('book').onclick = book;
