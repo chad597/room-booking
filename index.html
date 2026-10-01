@@ -139,8 +139,10 @@
     $('prev').disabled = d <= state.cfg.minDate;
     $('next').disabled = d >= state.cfg.maxDate;
     $('grid').textContent = 'Loading…';
-    Promise.all(rooms.map(function (r) { return apiGet({ action: 'slots', room: r.key, date: d }); }))
-      .then(function (all) { if (d === grid.date) renderGrid(rooms, all, d); })
+    getDay(d)
+      .then(function (day) {
+        if (d === grid.date) renderGrid(rooms, rooms.map(function (r) { return day[r.key] || []; }), d);
+      })
       .catch(function (e) { if (d === grid.date) $('grid').textContent = 'Could not load availability. ' + e.message; });
   }
 
@@ -189,6 +191,17 @@
     loadSlots();
   }
 
+  // One request returns all three rooms for a day; the slot list and the grid share it.
+  var dayCache = {};
+  function getDay(date) {
+    var c = dayCache[date];
+    if (c && Date.now() - c.t < 45000) return c.p;
+    var p = apiGet({ action: 'day', date: date });
+    dayCache[date] = { t: Date.now(), p: p };
+    p.catch(function () { delete dayCache[date]; });
+    return p;
+  }
+
   function init(cfg) {
     state.cfg = cfg;
     $('hours').textContent = 'Open ' + cfg.hoursLabel + '. Questions? Contact ' + cfg.contact + '.';
@@ -214,8 +227,12 @@
     var date = $('date').value;
     if (!date) return;
     $('slots').innerHTML = ''; $('slotHint').textContent = 'Loading times…';
-    apiGet({ action: 'slots', room: $('room').value, date: date })
-      .then(renderSlots)
+    var room = $('room').value;
+    getDay(date)
+      .then(function (day) {
+        if ($('date').value !== date || $('room').value !== room) return;
+        renderSlots(day[room] || []);
+      })
       .catch(function (e) { $('slotHint').textContent = ''; showMsg(e.message, 'err'); });
   }
 
@@ -256,6 +273,7 @@
       action: 'book', room: $('room').value, start: state.start,
       name: $('name').value, email: $('email').value, website: $('website').value
     }).then(function (r) {
+      dayCache = {};
       loadGrid();
       $('form').innerHTML = '<div class="msg ok"></div>';
       $('form').firstChild.textContent = r.pending
@@ -264,8 +282,8 @@
     }).catch(function (e) {
       btn.disabled = false; btn.textContent = state.pending ? 'Request this room' : 'Book this room';
       showMsg(e.message.replace(/^Error:\s*/, ''), 'err');
-      state.start = null;
-      apiGet({ action: 'slots', room: $('room').value, date: $('date').value }).then(renderSlots);
+      state.start = null; dayCache = {};
+      loadSlots(); loadGrid();
     });
   }
 
