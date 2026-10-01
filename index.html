@@ -17,14 +17,12 @@
     .top .sub { margin:0; font-size:14px; color:#d9d2cb; }
     .wrap { max-width:560px; margin:0 auto; padding:8px 16px 32px; }
     label, .lbl { display:block; font-weight:600; font-size:14px; margin:18px 0 6px; }
-    select, input[type=date], input[type=text], input[type=email] { width:100%; padding:11px 12px; font:inherit; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); }
-    select:focus, input:focus { outline:2px solid var(--accent); outline-offset:1px; }
+    input[type=text], input[type=email] { width:100%; padding:11px 12px; font:inherit; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); }
+    input:focus { outline:2px solid var(--accent); outline-offset:1px; }
     .seg { display:flex; gap:8px; }
-    .seg button, .slot { padding:11px 8px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); font:600 14px Montserrat, sans-serif; cursor:pointer; }
-    .seg button { flex:1; }
-    .seg button:hover, .slot:hover { border-color:var(--accent); background:#fff4ee; }
-    .seg button.sel, .slot.sel { background:var(--accent); border-color:var(--accent); color:var(--ink); }
-    .slots { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; margin-top:6px; }
+    .seg button { flex:1; padding:11px 8px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); font:600 14px Montserrat, sans-serif; cursor:pointer; }
+    .seg button:hover { border-color:var(--accent); background:#fff4ee; }
+    .seg button.sel { background:var(--accent); border-color:var(--accent); color:var(--ink); }
     button.primary { margin-top:20px; width:100%; padding:13px; font:700 16px Montserrat, sans-serif; border:0; border-radius:6px; background:var(--accent); color:var(--ink); cursor:pointer; }
     button.primary:hover:not(:disabled) { filter:brightness(.95); }
     button.primary:disabled { opacity:.5; cursor:not-allowed; }
@@ -34,19 +32,21 @@
     .hint { color:var(--muted); font-size:13px; margin-top:8px; }
     .hp { position:absolute; left:-9999px; }
     [hidden] { display:none !important; }
-    #overview { margin-top:36px; border-top:1px solid var(--line); padding-top:6px; }
-    #overview h2 { font-size:18px; margin:18px 0 10px; }
-    .datenav { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+    .pick { margin-top:22px; padding:12px 14px; border-radius:6px; background:#fff4ee; border:1px solid #ffd2bb; font-weight:600; font-size:15px; }
+    .pick small { display:block; font-weight:400; color:var(--muted); font-size:12.5px; margin-top:2px; }
+    .datenav { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:6px 0 10px; }
     .datenav button { width:44px; height:40px; border:1px solid var(--line); border-radius:6px; background:#fff; font-size:20px; line-height:1; cursor:pointer; color:var(--ink); }
     .datenav button:disabled { opacity:.35; cursor:not-allowed; }
     #gridDate { font-weight:700; text-align:center; }
     .grid table { width:100%; border-collapse:separate; border-spacing:3px; table-layout:fixed; }
-    .grid th { font-size:12px; text-align:center; font-weight:700; padding:4px 2px; line-height:1.2; }
+    .grid th { font-size:12px; text-align:center; font-weight:700; padding:4px 2px 5px; line-height:1.2; border-bottom:3px solid transparent; }
+    .grid th.pre { border-bottom-color:var(--accent); }
     .grid th.t, .grid td.t { width:46px; }
     .grid td.t { font-size:11px; color:var(--muted); text-align:right; padding-right:4px; white-space:nowrap; }
     .grid td.c { height:28px; border-radius:5px; font-size:11px; text-align:center; padding:1px 2px; line-height:1.15; overflow:hidden; word-break:break-word; }
     .grid td.open { background:#fff4ee; border:1px solid #ffd2bb; cursor:pointer; color:var(--ink); font-weight:600; }
-    .grid td.open:hover, .grid td.open:focus { background:var(--accent); outline:none; }
+    .grid td.open:hover, .grid td.open:focus { background:#ffb996; outline:none; }
+    .grid td.open.sel { background:var(--accent); border-color:var(--accent); }
     .grid td.booked { background:var(--cream); color:#6b645d; font-weight:600; }
     .grid td.pend { background:#fff7d6; color:#7a5d00; font-weight:600; }
     .grid td.na { background:#f7f5f3; color:#c4bbb2; }
@@ -61,53 +61,45 @@
   </div>
 </div>
 <div class="wrap">
-  <div id="form">
-    <label for="room">Room</label>
-    <select id="room"></select>
+  <div id="okmsg"></div>
 
-    <label for="date">Date</label>
-    <input type="date" id="date">
+  <div class="lbl">How long?</div>
+  <div class="seg" id="dur"></div>
 
-    <div class="lbl">How long?</div>
-    <div class="seg" id="dur"></div>
+  <div class="datenav">
+    <button type="button" id="prev" aria-label="Previous day">&lsaquo;</button>
+    <span id="gridDate"></span>
+    <button type="button" id="next" aria-label="Next day">&rsaquo;</button>
+  </div>
+  <div id="grid" class="grid">Loading…</div>
+  <div class="hint">Tap an open time to choose your start. * = starts after 5:00pm and needs building approval.</div>
 
-    <div class="lbl">Start time</div>
-    <div class="slots" id="slots"></div>
-    <div class="hint" id="slotHint">Choose a room and date.</div>
-
-    <div id="details" hidden>
-      <label for="name">Your name</label>
-      <input type="text" id="name" autocomplete="name" maxlength="80">
-      <label for="email">Your email</label>
-      <input type="email" id="email" autocomplete="email" maxlength="120">
-      <div class="hp"><input type="text" id="website" tabindex="-1" autocomplete="off"></div>
-      <button class="primary" id="book">Book this room</button>
-    </div>
+  <div id="details" hidden>
+    <div class="pick" id="pick"></div>
+    <label for="name">Your name</label>
+    <input type="text" id="name" autocomplete="name" maxlength="80">
+    <label for="email">Your email</label>
+    <input type="email" id="email" autocomplete="email" maxlength="120">
+    <div class="hp"><input type="text" id="website" tabindex="-1" autocomplete="off"></div>
+    <button class="primary" id="book">Book this room</button>
     <div id="msg"></div>
   </div>
-
-  <section id="overview">
-    <h2>All rooms at a glance</h2>
-    <div class="datenav">
-      <button type="button" id="prev" aria-label="Previous day">&lsaquo;</button>
-      <span id="gridDate"></span>
-      <button type="button" id="next" aria-label="Next day">&rsaquo;</button>
-    </div>
-    <div id="grid" class="grid">Loading…</div>
-    <div class="hint">Tap an open time to book it. * = starts after 5:00pm and needs building approval.</div>
-  </section>
 </div>
 
 <script>
   // The booking logic and calendars live in a Google Apps Script web app; this page only talks to it.
   var API = "https://script.google.com/macros/s/AKfycbz7SeqVjY4N9eyI0fkL5LksnRK0UYqvADAetE1WDPtNTMjh2eNpZi-xgLPvczO7mgCp/exec";
-  var state = { start: null, cfg: null, pending: false, want: null, dur: 60, day: null };
+  var state = { cfg: null, dur: 60, sel: null, day: null, pre: null };
   var grid = { date: null };
   var $ = function (id) { return document.getElementById(id); };
 
   function showMsg(text, kind) {
     $('msg').innerHTML = text ? '<div class="msg ' + kind + '"></div>' : '';
     if (text) $('msg').firstChild.textContent = text;
+  }
+  function showOk(text) {
+    $('okmsg').innerHTML = text ? '<div class="msg ok"></div>' : '';
+    if (text) { $('okmsg').firstChild.textContent = text; $('okmsg').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   }
 
   function parse(res) {
@@ -127,7 +119,7 @@
     }).then(parse);
   }
 
-  // One request returns all three rooms for a day; the start-time list and the grid share it.
+  // One request returns all three rooms for a day.
   var dayCache = {};
   function getDay(date) {
     var c = dayCache[date];
@@ -150,18 +142,18 @@
   function startText(label) { return label.split(' – ')[0]; }
   function endText(label) { return label.split(' – ')[1]; }
 
-  // Start times where the whole block (dur minutes) is free, in consecutive 30-minute slots.
-  function startsFor(slots, dur) {
-    var step = state.cfg.stepMinutes, n = dur / step, out = [];
-    for (var i = 0; i + n <= slots.length; i++) {
-      var ok = true;
-      for (var j = 0; j < n; j++) {
-        var s = slots[i + j];
-        if (!s.available || new Date(s.start).getTime() !== new Date(slots[i].start).getTime() + j * step * 60000) { ok = false; break; }
-      }
-      if (ok) out.push({ start: slots[i].start, label: startText(slots[i].label) + ' – ' + endText(slots[i + n - 1].label), needsApproval: slots[i].needsApproval });
+  // Does a block of dur minutes starting at startIso fit entirely in free, consecutive slots?
+  function fit(roomKey, startIso, dur) {
+    var slots = (state.day && state.day[roomKey]) || [];
+    var step = state.cfg.stepMinutes, n = dur / step, i = -1;
+    for (var k = 0; k < slots.length; k++) { if (slots[k].start === startIso) { i = k; break; } }
+    if (i < 0 || i + n > slots.length) return null;
+    var t0 = new Date(startIso).getTime();
+    for (var j = 0; j < n; j++) {
+      var s = slots[i + j];
+      if (!s.available || new Date(s.start).getTime() !== t0 + j * step * 60000) return null;
     }
-    return out;
+    return { label: startText(slots[i].label) + ' – ' + endText(slots[i + n - 1].label), needsApproval: slots[i].needsApproval };
   }
 
   function renderDur() {
@@ -171,93 +163,65 @@
       b.type = 'button'; b.textContent = durLabel(m);
       if (m === state.dur) b.classList.add('sel');
       b.onclick = function () {
-        state.dur = m; state.start = null; $('details').hidden = true; showMsg('');
-        renderDur(); renderStarts();
-      };
-      box.appendChild(b);
-    });
-  }
-
-  function init(cfg) {
-    state.cfg = cfg;
-    $('hours').textContent = 'Open ' + cfg.hoursLabel + '. Questions? Contact ' + cfg.contact + '.';
-    var sel = $('room');
-    cfg.rooms.forEach(function (r) {
-      var o = document.createElement('option');
-      o.value = r.key; o.textContent = r.name; sel.appendChild(o);
-    });
-    var pre = new URLSearchParams(location.search).get('room');
-    if (pre && cfg.rooms.some(function (r) { return r.key === pre; })) sel.value = pre;
-    if (cfg.durations.indexOf(state.dur) === -1) state.dur = cfg.durations[0];
-    $('date').min = cfg.minDate; $('date').max = cfg.maxDate; $('date').value = cfg.minDate;
-    sel.onchange = loadSlots; $('date').onchange = loadSlots;
-    $('book').onclick = book;
-    grid.date = cfg.minDate;
-    $('prev').onclick = function () { grid.date = addDays(grid.date, -1); loadGrid(); };
-    $('next').onclick = function () { grid.date = addDays(grid.date, 1); loadGrid(); };
-    renderDur();
-    loadSlots();
-    loadGrid();
-  }
-
-  function loadSlots() {
-    state.start = null; $('details').hidden = true; showMsg('');
-    var date = $('date').value;
-    if (!date) return;
-    $('slots').innerHTML = ''; $('slotHint').textContent = 'Loading times…';
-    var room = $('room').value;
-    getDay(date)
-      .then(function (day) {
-        if ($('date').value !== date || $('room').value !== room) return;
-        state.day = day[room] || [];
-        if (state.want) {
-          // Coming from the grid: keep the chosen length if it fits, otherwise the longest that does.
-          var want = state.want, best = null;
-          state.cfg.durations.forEach(function (m) {
-            if (m <= state.dur && startsFor(state.day, m).some(function (o) { return o.start === want; })) best = m;
-          });
-          if (best) { state.dur = best; renderDur(); }
+        state.dur = m; showMsg('');
+        if (state.sel) {
+          var f = fit(state.sel.room, state.sel.start, m);
+          if (f) { setSel(state.sel.room, state.sel.start, f); }
+          else { clearSel(); showOk(''); showMsg(''); }
         }
-        renderStarts();
-      })
-      .catch(function (e) { state.want = null; $('slotHint').textContent = ''; showMsg(e.message, 'err'); });
-  }
-
-  function renderStarts() {
-    var box = $('slots'); box.innerHTML = '';
-    var slots = state.day || [];
-    if (!slots.length) { state.want = null; $('slotHint').textContent = 'No bookable times on this date (weekdays only).'; return; }
-    var opts = startsFor(slots, state.dur), toSelect = null;
-    opts.forEach(function (o) {
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'slot'; b.textContent = o.label + (o.needsApproval ? ' *' : '');
-      b.onclick = function () {
-        state.start = o.start; state.pending = o.needsApproval;
-        $('book').textContent = o.needsApproval ? 'Request this room' : 'Book this room';
-        Array.prototype.forEach.call(box.children, function (c) { c.classList.remove('sel'); });
-        b.classList.add('sel'); $('details').hidden = false; showMsg('');
+        renderDur(); repaint();
       };
       box.appendChild(b);
-      if (state.want === o.start) toSelect = b;
     });
-    state.want = null;
-    if (toSelect) { toSelect.click(); $('details').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-    $('slotHint').textContent = opts.length
-      ? 'Tap a start time. * Starts after 5:00pm and needs building approval. Booked times are in the grid below.'
-      : 'No ' + durLabel(state.dur) + ' openings on this date. Try a shorter length or another day.';
+  }
+
+  function setSel(roomKey, startIso, f) {
+    var room = state.cfg.rooms.filter(function (r) { return r.key === roomKey; })[0];
+    state.sel = { room: roomKey, start: startIso, label: f.label, pending: f.needsApproval };
+    $('pick').innerHTML = '';
+    var t = document.createElement('div'); t.textContent = room.name + ' · ' + prettyDate(grid.date) + ' · ' + f.label;
+    $('pick').appendChild(t);
+    if (f.needsApproval) {
+      var sm = document.createElement('small');
+      sm.textContent = 'This starts after 5:00pm, so it needs building approval before it’s confirmed.';
+      $('pick').appendChild(sm);
+    }
+    $('book').textContent = f.needsApproval ? 'Request this room' : 'Book this room';
+    $('details').hidden = false;
+  }
+  function clearSel() { state.sel = null; $('details').hidden = true; }
+
+  // Tapped an open cell: use the chosen length, or the longest shorter one that fits there.
+  function pickSlot(roomKey, startIso) {
+    showOk(''); showMsg('');
+    var cands = state.cfg.durations.filter(function (m) { return m <= state.dur; }).sort(function (a, b) { return b - a; });
+    for (var i = 0; i < cands.length; i++) {
+      var f = fit(roomKey, startIso, cands[i]);
+      if (f) {
+        if (cands[i] !== state.dur) { state.dur = cands[i]; renderDur(); }
+        setSel(roomKey, startIso, f);
+        repaint();
+        $('details').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+    }
   }
 
   function loadGrid() {
-    var d = grid.date, rooms = state.cfg.rooms;
+    var d = grid.date;
     $('gridDate').textContent = prettyDate(d);
     $('prev').disabled = d <= state.cfg.minDate;
     $('next').disabled = d >= state.cfg.maxDate;
     $('grid').textContent = 'Loading…';
     getDay(d)
-      .then(function (day) {
-        if (d === grid.date) renderGrid(rooms, rooms.map(function (r) { return day[r.key] || []; }), d);
-      })
+      .then(function (day) { if (d === grid.date) { state.day = day; repaint(); } })
       .catch(function (e) { if (d === grid.date) $('grid').textContent = 'Could not load availability. ' + e.message; });
+  }
+
+  function repaint() {
+    if (!state.day || !state.cfg) return;
+    var rooms = state.cfg.rooms;
+    renderGrid(rooms, rooms.map(function (r) { return state.day[r.key] || []; }), grid.date);
   }
 
   function renderGrid(rooms, all, d) {
@@ -287,10 +251,15 @@
       }
     });
 
+    var sel = state.sel, selFrom = sel ? new Date(sel.start).getTime() : 0, selTo = sel ? selFrom + state.dur * 60000 : 0;
     var table = document.createElement('table');
     var head = table.insertRow();
     head.appendChild(Object.assign(document.createElement('th'), { className: 't' }));
-    rooms.forEach(function (r) { var th = document.createElement('th'); th.textContent = r.name; head.appendChild(th); });
+    rooms.forEach(function (r) {
+      var th = document.createElement('th'); th.textContent = r.name;
+      if (state.pre === r.key) th.className = 'pre';
+      head.appendChild(th);
+    });
     starts.forEach(function (st, k) {
       var tr = table.insertRow();
       var t = tr.insertCell(); t.className = 't'; t.textContent = startText(rows[st].label).replace(':00', '');
@@ -302,9 +271,11 @@
         if (span[k + ':' + i] > 1) td.rowSpan = span[k + ':' + i];
         if (s.available) {
           td.classList.add('open'); td.textContent = s.needsApproval ? 'Open *' : 'Open';
+          var ms = new Date(s.start).getTime();
+          if (sel && sel.room === r.key && ms >= selFrom && ms < selTo) td.classList.add('sel');
           td.tabIndex = 0; td.setAttribute('role', 'button');
           td.setAttribute('aria-label', r.name + ' ' + s.label + ' open');
-          var go = function () { pickSlot(r.key, d, s.start); };
+          var go = function () { pickSlot(r.key, s.start); };
           td.onclick = go;
           td.onkeydown = function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); } };
         } else if (/^Pending/.test(s.bookedBy || '')) {
@@ -317,36 +288,46 @@
     box.appendChild(table);
   }
 
-  function pickSlot(roomKey, date, start) {
-    $('room').value = roomKey; $('date').value = date;
-    state.want = start;
-    loadSlots();
-  }
-
   function book() {
     var btn = $('book');
-    if (!state.start) return showMsg('Please pick a start time.', 'err');
-    btn.disabled = true; btn.textContent = state.pending ? 'Requesting…' : 'Booking…'; showMsg('');
+    var s = state.sel;
+    if (!s) return showMsg('Please tap an open time first.', 'err');
+    btn.disabled = true; btn.textContent = s.pending ? 'Requesting…' : 'Booking…'; showMsg('');
     apiBook({
-      action: 'book', room: $('room').value, start: state.start, duration: state.dur,
+      action: 'book', room: s.room, start: s.start, duration: state.dur,
       name: $('name').value, email: $('email').value, website: $('website').value
     }).then(function (r) {
-      dayCache = {};
-      loadGrid();
-      $('form').innerHTML = '<div class="msg ok"></div>';
-      $('form').firstChild.textContent = r.pending
+      btn.disabled = false;
+      dayCache = {}; clearSel();
+      showOk(r.pending
         ? 'Request received for ' + r.room + ' — ' + r.when + '. Bookings that start after 5:00pm need building approval, so this is NOT confirmed yet. ' + state.cfg.contact + ' will follow up by email.'
-        : 'You’re booked! ' + r.room + ' — ' + r.when + '. A calendar invitation is on its way to your email. To change or cancel, contact ' + state.cfg.contact + '.';
+        : 'You’re booked! ' + r.room + ' — ' + r.when + '. A calendar invitation is on its way to your email. To change or cancel, contact ' + state.cfg.contact + '.');
+      loadGrid();
     }).catch(function (e) {
-      btn.disabled = false; btn.textContent = state.pending ? 'Request this room' : 'Book this room';
+      btn.disabled = false; btn.textContent = s.pending ? 'Request this room' : 'Book this room';
       showMsg(e.message.replace(/^Error:\s*/, ''), 'err');
-      state.start = null; dayCache = {};
-      loadSlots(); loadGrid();
+      dayCache = {}; loadGrid();
     });
   }
 
+  function init(cfg) {
+    state.cfg = cfg;
+    $('hours').textContent = 'Open ' + cfg.hoursLabel + '. Questions? Contact ' + cfg.contact + '.';
+    var pre = new URLSearchParams(location.search).get('room');
+    if (pre && cfg.rooms.some(function (r) { return r.key === pre; })) state.pre = pre;
+    if (cfg.durations.indexOf(state.dur) === -1) state.dur = cfg.durations[0];
+    grid.date = cfg.minDate;
+    $('book').onclick = book;
+    $('prev').onclick = function () { grid.date = addDays(grid.date, -1); clearSel(); loadGrid(); };
+    $('next').onclick = function () { grid.date = addDays(grid.date, 1); clearSel(); loadGrid(); };
+    renderDur();
+    loadGrid();
+  }
+
   apiGet({ action: 'config' }).then(init).catch(function (e) {
-    showMsg('Sorry, the booking system could not be reached. Please try again in a moment. (' + e.message + ')', 'err');
+    $('okmsg').innerHTML = '<div class="msg err"></div>';
+    $('okmsg').firstChild.textContent = 'Sorry, the booking system could not be reached. Please try again in a moment. (' + e.message + ')';
+    $('grid').textContent = '';
   });
 </script>
 </body>
